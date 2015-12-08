@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Knockout js 在SpringMVC中的应用</title>
+
+		<meta name="description" content="A framework for easily creating beautiful presentations using HTML">
+		<meta name="author" content="Hakim El Hattab">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/theme/default.css" id="theme">
+		<link rel="stylesheet" href="css/my.css">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h1>Knockout js 在 springMVC中的应用</h1>
+					<hr>
+					<p>&nbsp;</p>
+					<p>&nbsp;</p>
+					<h3>钟文明</h3>
+					<p>
+						<small><a href="mailto:zwm_zhong@126.com">zwm_zhong@126.com</a></small>
+					</p>
+				</section>
+								
+				<section>
+					<section>
+						<h2>PAINS</h2>
+						<pre class="fragment"><code class="code">
+    @RequestMapping
+    public String list(
+            @ModelAttribute PageResult page,
+            @RequestParam Long menuId,
+            @RequestParam(required=false) Long categoryId,
+            @RequestParam(required=false) Long levelId,
+            @RequestParam(required=false) Long campusId,
+            @RequestParam(required=false) Integer classTimeType,
+            @RequestParam(required=false) Integer status,
+            @RequestParam(required=false) String classNu,
+            @RequestParam(required=false) String openDateFrom,
+            @RequestParam(required=false) String openDateTo,
+            ModelMap model,
+            HttpServletRequest request
+    ) {
+		...
+	}
+						</code></pre>
+					</section>
+					<section>
+						<h3>带子表的数据提交</h3>
+						<img src="img/syntactically-wrong.png" width="408" height="176" alt="Syntactically Wrong" />
+					</section>
+				</section>
+				<section>
+					<h2>MVVM模式的界面编程</h2>
+					<ul>
+						<li>MVC的变体</li>
+						<li>M(数据模型) - V(视图) - VM(视图模型)</li>
+						<li class="fragment">VM:  View Model</li>
+						<li class="fragment">Knockout js</li>
+					</ul>
+					<div style="height:100px">&nbsp;</div>
+				</section>
+				<section>
+					<section>
+						<h2>SpringMVC</h2>
+						<p>良好的json支持</p>
+						<pre class="fragment"><code class="java">
+    @RequestMapping(value="/{id}",method = RequestMethod.GET)
+    @ResponseBody
+    public ClassnuBean get(@PathVariable Long id)  throws Exception {
+        if (id > 0)
+            return classnuService.getClassnuBeanById(id);
+        else
+            return new ClassnuBean(true);
+    }
+						</code></pre>
+						<p class="fragment">输出</p>
+						<pre class="fragment"><code class="javascript">
+	{"periods":[{"id":12,"classnuId":2,"timeElapse":null,"hourFrom":"07","minuteFrom":"00","hourTo":"08","minuteTo":"00"},{"id":13,"classnuId":2,"timeElapse":null,"hourFrom":"07","minuteFrom":"00","hourTo":"10","minuteTo":"00"}],"classnu":{"id":2,"status":0,"progress":"0%","campusId":60,"classNu":"804-8004","categoryId":804,"levelId":8004,"moduleId":null,"placeId":null,"companyId":1,"teacherId":2,"classroomId":null,"memo":"df ds","teachTimeType":1,"examTypeId":null,"assistantId":4,"capacity":0,"flotation":null,"openDate":"2013-06-19","closeDate":"2013-06-27","opId":null,"masterName":"刘某","totalTime":8.00,"lessonTimes":2}}
+						</code></pre>
+					</section>
+					<section>
+						<h3>输入</h3>
+						<pre><code class="java">
+    @RequestMapping(value="/save", method=RequestMethod.POST)
+    @ResponseBody
+    public String save(@RequestBody ClassnuBean bean, HttpSession session) throws Exception {
+        TsysUsers user = (TsysUsers) session.getAttribute("loginUser");
+        bean.getClassnu().setCompanyId(user.getCompanyId());
+        classnuService.save(bean, user);
+        return "ok";
+    }
+						</code></pre>
+					</section>
+				</section>
+				<section>
+					<h1>AGENDA</h1>
+					<ul>
+						<li>使用knockoutJS之前后对比</li>
+						<li>KnockoutJS的特性</li>
+						<li>应用实例</li>
+					</ul>
+				</section>
+				<section>
+					<section>
+						<h2>使用Knockoutjs前后的比较</h2>
+						<p class="fragment">
+							<img src="img/messy_room2.jpg" width="480" height="360" alt="Messy Room2"/>
+						</p>
+					</section>
+					<section>
+						<h3>界面</h3>
+						<img src="img/ui1.png" alt="Ui1" width="912" height="522"/>
+					</section>
+					<section>
+						<h3>数据模型</h3>
+						<img src="img/teacher-model.png" width="432" height="607" alt="Teacher Model" />
+					</section>
+					<section>
+						<h3>使用KO前的 JSP输出</h3>
+						<p>
+						<pre><code class="xml">
+&lt;c:forEach var=&quot;acc&quot; items=&quot;${accs}&quot; varStatus=&quot;status&quot;&gt;
+&lt;tr class=&quot;td_link&quot; id=&quot;acc-row-${status.index}&quot;&gt;
+    &lt;input type=&quot;hidden&quot; name=&quot;accs__${status.index}.id&quot; value=&quot;${acc.id}&quot;/&gt;
+    &lt;td class=&quot;link&quot;&gt;&lt;input type=&quot;checkbox&quot; id=&quot;acc-tr-${status.index}&quot; class=&quot;row-ckb&quot;/&gt;&lt;/td&gt;
+    &lt;td class=&quot;link&quot;&gt;
+        &lt;input type=&quot;text&quot; name=&quot;accs__${status.index}.accName&quot; value=&quot;${acc.accName}&quot;&gt;
+    &lt;/td&gt;
+    &lt;td class=&quot;link&quot;&gt;
+        &lt;input name=&quot;accs__${status.index}.bankBranch&quot; type=&quot;text&quot; value=&quot;${acc.bankBranch}&quot;/&gt;
+    &lt;/td&gt;
+    &lt;td class=&quot;link&quot;&gt;
+        &lt;input name=&quot;accs__${status.index}.accNo&quot; type=&quot;text&quot; value=&quot;${acc.accNo}&quot;/&gt;
+    &lt;/td&gt;
+    &lt;td class=&quot;border_right&quot;&gt;
+		&lt;input name=&quot;accs__${status.index}.memo&quot; type=&quot;text&quot; value=&quot;${acc.memo}&quot;/&gt;
+	&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/c:forEach&gt;
+							</code></pre>
+						</p>
+					</section>
+					<section>
+						<h3>使用KO前的javascript代码</h3>
+						<pre><code class="javascript">
+teacher.addAccRow = function() {
+    $(&#x27;#acc-table-body&#x27;).append(
+        &#x27;&lt;tr class=&quot;td_link&quot; id=&quot;acc-row-&#x27; + accs_idx + &#x27;&quot;&gt;&#x27;
+        +&#x27;&lt;input type=&quot;hidden&quot; name=&quot;accs__&#x27; + accs_idx + &#x27;.id&quot; value=&quot;&quot;/&gt;&#x27;
+        +&#x27;&lt;td class=&quot;link&quot;&gt;&lt;input type=&quot;checkbox&quot; id=&quot;acc-tr-&#x27; + accs_idx + &#x27;&quot; class=&quot;row-ckb&quot; style=&quot;width:15px;height:15px;&quot; /&gt;&lt;/td&gt;&#x27;
+        +&#x27;&lt;td class=&quot;link&quot; style=&quot;padding-left:10px;text-align:left&quot;&gt;&#x27;
+        +&#x27;&lt;input type=&quot;text&quot; name=&quot;accs__&#x27; + accs_idx + &#x27;.accName&quot; value=&quot;&quot; style=&quot;border:1px #ccc solid;width:80px;height:20px;&quot;&gt;&#x27;
+        +&#x27;&lt;/td&gt;&#x27;
+        +&#x27;&lt;td class=&quot;link&quot; style=&quot;padding-left:10px;text-align:left&quot;&gt;&#x27;
+        +&#x27;&lt;input name=&quot;accs__&#x27; + accs_idx + &#x27;.bankBranch&quot; type=&quot;text&quot; value=&quot;&quot; style=&quot;height:20px;width:200px;border:1px #ccc solid;&quot;/&gt;&#x27;
+        +&#x27;&lt;/td&gt;&#x27;
+        +&#x27;&lt;td class=&quot;link&quot; style=&quot;padding-left:10px;text-align:left&quot;&gt;&#x27;
+        +&#x27;&lt;input name=&quot;accs__&#x27; + accs_idx + &#x27;.accNo&quot; type=&quot;text&quot; value=&quot;&quot; style=&quot;height:20px;width:200px;border:1px #ccc solid;&quot;/&gt;&#x27;
+        +&#x27;&lt;/td&gt;&#x27;
+        +&#x27;&lt;td class=&quot;border_right&quot; style=&quot;padding-left:10px;text-align:left&quot;&gt;&lt;input name=&quot;accs__&#x27; + accs_idx++ + &#x27;.memo&quot; type=&quot;text&quot; value=&quot;&quot; style=&quot;height:20px;width:200px;border:1px #ccc solid;&quot;/&gt;&lt;/td&gt;&#x27;
+        +&#x27;&lt;/tr&gt;&#x27;
+    );
+};
+						</code></pre>
+						<p class="fragment">还有</p>
+						<ul>
+							<li class="fragment">删除</li>
+							<li class="fragment">维护编号</li>
+						</ul>
+					</section>
+					<section>
+						<img src="img/MessServletCode.png" width="602" height="502" alt="MessServletCode" />
+					</section>
+				</section>
+				<section>
+					<section>
+						<h2>对比</h2>
+						<p>使用knockout后</p>
+					</section>
+					<section>
+						<h3>html代码 绑定</h3>
+						<pre><code class="xml">
+&lt;tbody id=&quot;acc-table-body&quot; data-bind=&quot;foreach:accs&quot;&gt;
+&lt;tr class=&quot;td_link&quot;&gt;
+    &lt;td class=&quot;link&quot;&gt;
+		&lt;input type=&quot;checkbox&quot; class=&quot;acc-row-ckb&quot;/&gt;
+		&lt;button data-bind=&quot;click:$root.delAcc&quot; style=&quot;display:none&quot;&gt;&#x5220;&#x9664;&lt;/button&gt;
+	&lt;/td&gt;
+    &lt;td class=&quot;link&quot;&gt;
+        &lt;input type=&quot;text&quot; data-bind=&quot;value:accName&quot;&gt;
+    &lt;/td&gt;
+    &lt;td class=&quot;link&quot;&gt;
+        &lt;input type=&quot;text&quot; data-bind=&quot;value:bankBranch&quot;/&gt;
+    &lt;/td&gt;
+    &lt;td class=&quot;link&quot;&gt;
+        &lt;input type=&quot;text&quot; data-bind=&quot;value:accNo&quot;/&gt;
+    &lt;/td&gt;
+    &lt;td class=&quot;border_right&quot;&gt;&lt;input type=&quot;text&quot; data-bind=&quot;value:memo&quot;/&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+						</code></pre>
+					</section>
+					<section>
+						<h3>使用后javascript代码</h3>
+						<pre><code class="javascript">
+    model.addAcc = function() {
+      model.editmodel.accs.push(ko.mapping.fromJS({
+        "accName": null,
+        "accNo": null,
+        "bankBranch": null,
+        "id": null,
+        "memo": null,
+        "teacherId": null
+      }));
+    };
+						</code></pre>
+						<!--</section>
+					<section>
+						<h3>javascript代码 续</h3>-->
+						<pre><code class="javascript">
+    model.delAcc = function() {
+      if (confirm('确定删除?!')) {
+        return model.editmodel.accs.remove(this);
+      }
+    };
+						</code></pre>
+					</section>
+					<section>
+						<h3>调试支持</h3>
+						<img src="img/debuging-support.png" width="855" height="157" alt="Debuging Support" />
+					</section>
+					<section>
+						<h3>调试支持</h3>
+						<img src="img/debuging.png" width="539" height="340" alt="Debuging" />
+					</section>
+					<section>
+						<p>
+							<img src="img/tidy-room1.jpeg" width="480" height="360" alt="Tidy Room1"/>
+						</p>
+					</section>
+				</section>
+				<section>
+					<section>
+					<h2>KnockoutJS的特性</h2>
+					<ul>
+						<li class="fragment">声明式数据绑定</li>
+						<li class="fragment">数据监听/刷新</li>
+						<li class="fragment">依赖跟踪</li>
+						<li class="fragment">浏览器端模板</li>
+					</ul>
+					</section>
+					<section>
+						<h3>声明式数据绑定</h3>
+						<img src="img/binding-overview.png" width="494" height="432" alt="Binding Overview" />
+					</section>
+					<section>
+						<h3>绑定支持</h3>
+						<ul>
+							<li>
+								<h5>输出</h5>
+								<ul>
+									<li>value, text ...</li>
+									<li>options, attr, css, style ...</li>
+									<li>click, checked, disable ...</li>
+								</ul>
+							</li>
+							<div style="height:1em">&nbsp;
+							</div>
+							<li class="fragment">
+								<h5>流程控制</h5>
+								<ul>
+									<li>foreach</li>
+									<li>if</li>
+									<li>ifnot</li>
+									<li>with</li>
+								</ul>
+							</li>
+						</ul>
+					</section>
+ 					<section>
+						<h3>数据监听/刷新</h3>
+						<pre><code>
+<p>First name: <strong data-bind="text: firstName"></strong></p>
+<p>Last name: <strong data-bind="text: lastName"></strong></p>
+
+<p>First name: <input data-bind="value: firstName" /></p>
+<p>Last name: <input data-bind="value: lastName" /></p>
+						</code></pre>
+						<pre><code class="javascript">
+var AppViewModel = {
+    firstName : ko.observable("Bert"),
+    lastName : "Bertington"
+}
+ko.applyBindings(AppViewModel);
+						</code></pre>
+					</section>
+					<section>
+						<img src="img/auto-refresh-1.png" width="930" height="306" alt="Auto Refresh 1" />
+					</section>
+					<section data-transition="none">
+						<img src="img/auto-refresh-2.png" width="930" height="292" alt="Auto Refresh 2" />
+					</section>
+					<section>
+						<h3>依赖跟踪</h3>
+						<pre><code>
+fullName = ko.computed(function() {
+        model.firstName() + " " + model.lastName();    
+}
+						</code></pre>
+						<img src="img/dependency-tracking.png" width="926" height="370" alt="Dependency Tracking" />
+					</section>
+					<section>
+						<h3>浏览器端模板</h3>
+						<pre><code class="xml">
+<div data-bind="template: { name: 'person-template', data: buyer }"></div>
+<div data-bind="template: { name: 'person-template', data: seller }"></div>
+
+<script type="text/html" id="person-template">
+    <h3 data-bind="text: name"></h3>
+    <p>Credits: <span data-bind="text: credits"></span></p>
+</script>
+						</code></pre>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h2>另一个例子</h2>
+						<img src="img/ex-merge.png" width="752" height="341" alt="Ex Merge" />
+					</section>
+				</section>
+				
+				<section>
+					<h2>学习资源</h2>
+					<p>手把手的教程 <a href="http://learn.knockoutjs.com/#/?tutorial">http://learn.knockoutjs.com/#/?tutorial</a>
+					</p>
+					<p class="fragment">文档 <a href="http://knockoutjs.com/documentation/introduction.html">http://knockoutjs.com/documentation</a></p>
+				</section>
+
+
+			
+<!-- 结束
+	======================================================-->
+				<section>
+					<h1>THE END</h1>
+					<h3>Q/A</h3>
+				</section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// options://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				history: true,
+				center: true,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
